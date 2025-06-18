@@ -2,44 +2,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Doctor Details</title>
+    <title>Doctor Details - Hospital Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <a href="home.php">Home</a> |
-    <a href="javascript:history.back()">Back</a>
-    <h1>Doctor Details</h1>
-    <?php
-    if (!isset($_GET['doctorId'])) {
-        echo "<p>No doctor selected.</p>";
-        exit;
-    }
-    $doctorId = intval($_GET['doctorId']);
-    // Get doctor info
-    $docSql = "SELECT u.fullName FROM user u WHERE u.userId = $doctorId";
-    $docRes = $conn->query($docSql);
-    if ($docRes && $docRes->num_rows > 0) {
-        $doc = $docRes->fetch_assoc();
-        echo "<h2>" . htmlspecialchars($doc['fullName']) . "</h2>";
-    }
-    // Date filter
-    $dateFilter = isset($_GET['date']) ? $_GET['date'] : '';
-    echo '<form method="get">';
-    echo '<input type="hidden" name="doctorId" value="' . $doctorId . '">';
-    echo 'Filter by date: <input type="date" name="date" value="' . htmlspecialchars($dateFilter) . '">';
-    echo '<input type="submit" value="Filter">';
-    echo '</form>';
-    // List appointments
-    $apptSql = "SELECT v.date, v.patientId, u.fullName FROM visit v JOIN user u ON v.patientId = u.userId WHERE v.doctorId = $doctorId";
-    if ($dateFilter) {
-        $apptSql .= " AND v.date = '" . $conn->real_escape_string($dateFilter) . "'";
-    }
-    $apptSql .= " ORDER BY v.date DESC";
-    $apptRes = $conn->query($apptSql);
-    echo "<h3>Appointments</h3><ul>";
-    while ($appt = $apptRes->fetch_assoc()) {
-        echo "<li><a href='visit.php?doctorId=$doctorId&patientId=" . $appt['patientId'] . "&date=" . $appt['date'] . "'>" . $appt['date'] . " - " . htmlspecialchars($appt['fullName']) . "</a></li>";
-    }
-    echo "</ul>";
-    ?>
+    <nav class="navbar">
+        <div class="container">
+            <a href="home.php" class="navbar-brand">Hospital Management System</a>
+            <ul class="nav-links">
+                <li><a href="departments.php">Departments</a></li>
+                <li><a href="patient.php">Patients</a></li>
+                <li><a href="getAppointment.php">Appointments</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="navigation">
+            <a href="javascript:history.back()">← Back</a>
+        </div>
+        <?php
+        if (!isset($_GET['doctorId'])) {
+            echo "<div class='alert alert-error'><p>No doctor selected.</p></div>";
+            exit;
+        }
+        $doctorId = intval($_GET['doctorId']);
+        $docSql = "SELECT u.fullName, d.specialty, dep.name as departmentName FROM user u JOIN doctor d ON u.userId = d.userId JOIN department dep ON d.workingIn = dep.departmentId WHERE u.userId = $doctorId";
+        $docRes = $conn->query($docSql);
+        if ($docRes && $docRes->num_rows > 0) {
+            $doc = $docRes->fetch_assoc();
+            echo "<div class='card'>";
+            echo "<h1>Dr. " . htmlspecialchars($doc['fullName']) . "</h1>";
+            echo "<div class='doctor-info'>";
+            echo "<p><strong>Specialty:</strong> " . htmlspecialchars($doc['specialty'] ?? 'General Medicine') . "</p>";
+            echo "<p><strong>Department:</strong> " . htmlspecialchars($doc['departmentName']) . "</p>";
+            echo "</div></div>";
+        }
+        ?>
+    </div>
 </body>
-</html> 
+</html>
